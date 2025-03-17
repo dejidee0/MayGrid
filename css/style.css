@@ -2227,3 +2227,18 @@ a:focus {
     text-align: center;
   }
 }
+
+.logo_png {
+  width: 200px;
+  height: 200px;
+  text-align: center;
+  object: fit;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  margin: auto;
+}
+
+.logo {
+  background-color: transparent !important;
+}
