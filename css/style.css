@@ -76,7 +76,7 @@ a:focus {
 /**********************************/
 .top-bar {
   position: relative;
-  height: 90px;
+  height: 120px;
   background: #fdbe33;
 }
 
@@ -84,6 +84,10 @@ a:focus {
   padding: 15px 0;
   text-align: left;
   overflow: hidden;
+  background-color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .top-bar .logo h1 {
@@ -96,7 +100,7 @@ a:focus {
 
 .top-bar .logo img {
   max-width: 100%;
-  max-height: 70px;
+  max-height: 90px;
 }
 
 .top-bar .top-bar-item {
@@ -145,6 +149,9 @@ a:focus {
 @media (max-width: 991.98px) {
   .top-bar .logo {
     text-align: center;
+  }
+  .top-bar {
+    padding: 0;
   }
 }
 
