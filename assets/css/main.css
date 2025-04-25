@@ -2215,6 +2215,14 @@ hr {
   position: relative;
   z-index: 1;
 }
+.banab {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  width: 100vw;
+  height: 100vh;
+}
+
 .hero-overly::before {
   position: absolute;
   content: "";

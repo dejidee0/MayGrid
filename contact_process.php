@@ -1,37 +1,80 @@
 <?php
+session_start();
 
-    $to = "rockybd1995@gmail.com";
-    $from = $_REQUEST['email'];
-    $name = $_REQUEST['name'];
-    $subject = $_REQUEST['subject'];
-    $number = $_REQUEST['number'];
-    $cmessage = $_REQUEST['message'];
+// Enable error reporting
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-    $headers = "From: $from";
-	$headers = "From: " . $from . "\r\n";
-	$headers .= "Reply-To: ". $from . "\r\n";
-	$headers .= "MIME-Version: 1.0\r\n";
-	$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+require "vendor/autoload.php";
 
-    $subject = "You have a message from your Bitmap Photography.";
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-    $logo = 'img/logo.png';
-    $link = '#';
+// Initialize messages
+$_SESSION['errors'] = [];
+$_SESSION['success'] = '';
 
-	$body = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><title>Express Mail</title></head><body>";
-	$body .= "<table style='width: 100%;'>";
-	$body .= "<thead style='text-align: center;'><tr><td style='border:none;' colspan='2'>";
-	$body .= "<a href='{$link}'><img src='{$logo}' alt=''></a><br><br>";
-	$body .= "</td></tr></thead><tbody><tr>";
-	$body .= "<td style='border:none;'><strong>Name:</strong> {$name}</td>";
-	$body .= "<td style='border:none;'><strong>Email:</strong> {$from}</td>";
-	$body .= "</tr>";
-	$body .= "<tr><td style='border:none;'><strong>Subject:</strong> {$csubject}</td></tr>";
-	$body .= "<tr><td></td></tr>";
-	$body .= "<tr><td colspan='2' style='border:none;'>{$cmessage}</td></tr>";
-	$body .= "</tbody></table>";
-	$body .= "</body></html>";
+// Validate CSRF token
+if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    $_SESSION['errors'][] = "Security token mismatch";
+    header("Location: contact.php#contact");
+    exit;
+}
 
-    $send = mail($to, $subject, $body, $headers);
+// Sanitize inputs
+$name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+$email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+$subject = filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_STRING);
+$message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
 
-?>
+// Validate inputs
+if (empty($name)) $_SESSION['errors'][] = "Name is required";
+if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $_SESSION['errors'][] = "Valid email is required";
+}
+if (empty($subject)) $_SESSION['errors'][] = "Subject is required";
+if (empty($message)) $_SESSION['errors'][] = "Message is required";
+
+// Redirect if errors
+if (!empty($_SESSION['errors'])) {
+    header("Location: contact.php#contact");
+    exit;
+}
+
+try {
+    $mail = new PHPMailer(true);
+    
+    // Server settings
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = 'aboderindaniel482@gmail.com'; // Your Gmail
+    $mail->Password = 'rhbwpurtuifkzxtz'; // App password
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = 587;
+
+    // Recipients
+    $mail->setFrom('aboderindaniel4@gmail.com', 'Website Contact Form');
+    $mail->addAddress('dnlcodes4@email.com', 'Dnlcodes');
+    $mail->addReplyTo($email, $name);
+
+    // Content
+    $mail->isHTML(true);
+    $mail->Subject = "New Contact Form Submission: $subject";
+    $mail->Body = "
+        <h3>New Contact Form Submission</h3>
+        <p><strong>Name:</strong> " . htmlspecialchars($name) . "</p>
+        <p><strong>Email:</strong> " . htmlspecialchars($email) . "</p>
+        <p><strong>Subject:</strong> " . htmlspecialchars($subject) . "</p>
+        <p><strong>Message:</strong></p>
+        <p>" . nl2br(htmlspecialchars($message)) . "</p>
+    ";
+
+    $mail->send();
+    $_SESSION['success'] = "Your message has been sent successfully!";
+} catch (Exception $e) {
+    $_SESSION['errors'][] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+}
+
+header("Location: contact.php#contact");
+exit;
